@@ -1,4 +1,4 @@
 pybot
 =====
 
-Hubot copy by Python
+Hubot clone by Python
