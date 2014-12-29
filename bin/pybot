@@ -1,0 +1,120 @@
+#!/usr/bin/env python
+# -*- coding:utf-8 -*-
+
+import os, sys
+import signal
+import logging
+import optparse
+
+def main():
+
+    parser = optparse.OptionParser()
+
+    parser.add_option(
+        '-a', '--adapter',
+        action = 'store',
+        default = os.environ.get('HUBOT_ADAPTER') or 'shell',
+        dest = 'adapter',
+        help = 'The Adapter to use'
+    )
+
+    parser.add_option(
+        '-c', '--create',
+        action = 'store',
+        ## TODO: Set 'true' to create and default value
+        dest = 'path',
+        help = 'Creaete a deployable hubot'
+    )
+
+    parser.add_option(
+        '-d', '--disable-httpd',
+        action = 'store_false',
+        default = os.environ.get('HUBOT_HTTPD') or True,
+        dest = 'enabledHttpd',
+        help = 'Disable the HTTP server'
+    )
+
+    parser.add_option(
+        '-l', '--alias',
+        action = 'store',
+        default = os.environ.get('HUBOT_ALIAS') or False,
+        dest = 'alias',
+        help = 'Enable replacing the robot\'s name with alias'
+    )
+
+    parser.add_option(
+        '-n', '--name',
+        action = 'store',
+        default = os.environ.get('HUBOT_NAME') or 'Hubot',
+        dest = 'name',
+        help = 'The name of the robot in chat'
+    )
+
+    parser.add_option(
+        '-r', '--require',
+        action = 'store',
+        default = os.environ.get('HUBOT_PATH') or '.',
+        dest = 'path',
+        help = 'Alternative scripts path'
+    )
+
+    parser.add_option(
+        '-t', '--config-check',
+        action = 'store_true',
+        default = False,
+        help = 'Test hubot\'s config to make sure it won\'t fail at startup'
+    )
+
+    parser.add_option(
+        '-v', '--version',
+        action = 'store_true',
+        default = False,
+        help = 'Displays the version of hubot installed'
+    )
+
+
+    (options, args) = parser.parse_args()
+
+    if sys.platform is not 'win32':
+        signal.signal(signal.SIGTERM, sys.exit())
+
+    if options.create:
+        logging.error("'hubot --create' is deprecated. Use the yeoman generator instead:"
+        logging.error("    npm install -g yo generator-hubot"
+        logging.error("    mkdir -p " + options.path)
+        logging.error("    yo hubot")
+        logging.error("See https://github.com/github/hubot/blob/master/docs/README.md for more details on getting started.")
+        sys.exit(1)
+    else:
+        dirname = os.path.dirname(os.path.abspath(sys.argv[0]))
+        adapter_path = os.path.join(dirname, '..', 'src', 'adapters')
+
+        ## TODO: Fix writing 'load_bot'
+        robot = load_bot(adapter_path,
+                        options.adapter,
+                        options.enableHttpd,
+                        options.name)
+
+        if options.version:
+            logging.info robot.version
+            sys.exit()
+
+        robot.alias = options.alias
+
+    def load_scripts():
+        scripts_path = os.path.abspath(os.path.join('.', 'scripts'))
+        robot.load(scripts_path)
+
+        scripts_path = os.path.abspath(os.path.join('.', 'src', 'scripts'))
+        robot.load(scripts_path)
+
+        hubot_scripts = os.path.abspath(os.path.join('.', 'hubot-scripts.json'))
+        if os.path.exists(hubot_scrips):
+            fs = open(hubot_script, 'r')
+            data = fs.read()
+            if data.length > 0:
+                ## TODO: Write codes
+
+if __name__ == '__main__':
+    main()
+
