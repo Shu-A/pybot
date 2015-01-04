@@ -5,6 +5,7 @@ import os, sys
 import signal
 import logging
 import optparse
+import json
 
 def main():
 
@@ -75,6 +76,8 @@ def main():
 
     (options, args) = parser.parse_args()
 
+    logging.basicConfig(level=logging.INFO)
+
     if sys.platform is not 'win32':
         signal.signal(signal.SIGTERM, sys.exit())
 
@@ -113,7 +116,37 @@ def main():
             fs = open(hubot_script, 'r')
             data = fs.read()
             if data.length > 0:
-                ## TODO: Write codes
+                ## TODO: Checking to need a exception processing
+                scripts = json.load(data)
+                scripts_path = os.path.abspath(os.path.join('node_modules', 'hubot-scripts', 'src', 'scripts')
+                robot.load_hubot_scripts(scripts_path, scripts)
+
+        external_scripts = os.path.abspath(os.path.join('.', 'external-scripts.json')
+        if os.path.exists(external_scripts):
+            fs = open(external_scripts, 'r')
+            ## TODO: Fix to ansyncroniously reading above code
+            data = fs.read()
+            if data.length > 0:
+                ## TODO: Checking to need a exception processing
+                scripts = json.load(data)
+                robot.load_external_scripts(scripts)
+
+        for path in options.scripts:
+            if path[0] == '/':
+                scripts_path = path
+            else:
+                scripts_path = os.path.abspath(os.path.join('.', path)
+            robot.load(scripts_path)
+
+    if options.configCheck:
+        load_scripts()
+        logging.info('OK')
+        sys.exit()
+
+    robot.adapter.on('connected', load_scripts)
+
+    robot.run()
+
 
 if __name__ == '__main__':
     main()
