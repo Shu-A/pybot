@@ -17,7 +17,7 @@ class Brain(EventEmitter):
 
         self.auto_save = True
 
-        robot.on("running", lambda: self.reset_save_interval(5)
+        robot.on("running", lambda: self.reset_save_interval(5))
 
     def set(self, key, value):
         """
@@ -27,4 +27,147 @@ class Brain(EventEmitter):
 
         Returns the instance for chaining.
         """
+        ## Memo: Check object instance or not ?
+        pass
+
+    def get(self, key):
+        """
+        Public:
+        Get value by key from the private namespace in self.data
+        or return null if not found.
+
+        Returns the value.
+        """
+        if self.data._private.has_key(key):
+            return self.data._private[key]
+        else:
+            return None
+
+    def remove(self, key):
+        """
+        Public:
+        Remove value by key from the private namespace in self.data
+        if it exists
+
+        Returns the instance for chaining.
+        """
+        if self.data._private.has_key(key):
+            self.data._private.pop(key)
+
+        return self
+
+    def save(self):
+        """
+        Public:
+        Emits the 'save' event so that 'brain' scripts can handle persisting.
+
+        Returns nothing.
+        """
+        self.emit('save', self.data)
+
+    def close(self):
+        """
+        Public:
+        Emits the 'close' event so that 'brain' scripts can handle closing.
+
+        Returns nothing.
+        """
+        clear_interval(self.save_interval)
+        self.save()
+        self.emit('close')
+
+    def set_auto_save(self, enabled):
+        """
+        Public:
+        Enable or disable the automatic saving
+
+        enabled : A boolean whether to autosave or not
+
+        Returns nothing.
+        """
+        self.auto_save = enabled
+
+    def reset_save_interval(self, seconds):
+        """
+        Public:
+        Reset the interval between save function calls.
+
+        seconds : An Integer of seconds between saves.
+
+        Returns nothing.
+        """
+        ## TODO: Complete below code
+        if self.save_interval:
+            clear_save_interval(self.save_interval)
+        self.save_interval = set_interval()
+
+    def merge_data(self, data):
+        """
+        Public:
+        Merge keys loaded from a DB against the in memory representation.
+
+        Returns nothing.
+
+        Caveates:
+        Deeply nested structures don't merge well.
+        """
+        for key in (data or {}):
+            self.data[key] = data[key]
+
+        self.emit('loaded', self.data)
+
+    def users(self):
+        """
+        Public:
+        Get an Array of User objects stored in the brain.
+
+        Returns an Array of User objects.
+        """
+        return self.data.users
+
+    def user_for_id(self, id, options):
+        """
+        Public:
+        Get a User object given a unique identifier.
+
+        Returns a User instance of the specified user.
+        """
+        user = self.data.users(id)
+        if not user:
+            user = User(id, options)
+            self.data.users[id] = user
+
+        if options and options.room and
+            (not user.room or user room is not options.room)
+            user = User(id, options)
+            self.data.users[id] = user
+
+        return user
+
+    def user_for_name(self, name):
+        """
+        Public:
+        Get a User object given a name.
+
+        Returns a User instance for the user with the specified name.
+        """
+        result = None
+        lower_name = name.lower()
+        for key in (self.data.users or {}):
+            user_name self.data.users[key]['name']
+            if user_name and str(user_name).lower() is lower_name:
+                result = self.data.users[key]
+
+        return result
+
+    def users_for_raw_fuzzy_name(self, fuzzy_name):
+        """
+        Public:
+        Get all users whose names match fuzzy_name. Currently, match
+        means 'starts with', but this could be extended to match initials,
+        nicknames, etc.
+
+        Returns an Array of User instances matching the fuzzy name.
+        """
+        lower_fuzzy_name = fuzzy_name.lower()
         pass
