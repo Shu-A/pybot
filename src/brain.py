@@ -170,4 +170,41 @@ class Brain(EventEmitter):
         Returns an Array of User instances matching the fuzzy name.
         """
         lower_fuzzy_name = fuzzy_name.lower()
-        pass
+        users = []
+        for key, user in (self.user or {}):
+            if user.name.lower().index(lower_fuzzy_name) == 0
+                and user.name.lower().count(lower_fuzzy_name):
+                    users.append(user)
+
+        return users
+
+    def users_for_fuzzy_name(self, fuzzy_name):
+        """
+        Public:
+        If fuzzy_name is an exact match for a user, returns an array with
+        just that user. Otherwise, returns an array of all users for which
+        fuzzy_name is a raw fuzzy match (see users_for_raw_fuzzy_name)
+
+        Returns an Array of User instances matching the fuzzy name.
+        """
+        matchd_users = self.users_for_raw_fuzzy_name(fuzzy_name)
+        lower_fuzzy_name = fuzzy_name.lower()
+        for user in matched_users:
+            if user.name.lower() is lower_fuzzy_name:
+                return [user]
+
+        return matched_users
+
+    def extend(self, obj, *sources):
+        """
+        Private:
+        Extend obj with objects passed as additional args.
+
+        Returns the original object with updated changes.
+        """
+        for source in sources:
+            for key, val in source.items():
+                ojb[key] = val
+
+        return obj
+

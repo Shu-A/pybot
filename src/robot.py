@@ -33,7 +33,7 @@ class robot(object):
         """
         Constructor.
 
-        Attributes:
+        Args:
             adapter_path: A String of the path to local adapters.
             adapter     : A String of the adapter name.
             httpd       : A Boolean whether to enable the HTTP daemon.
