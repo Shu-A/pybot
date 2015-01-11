@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
+import re
+
 class Listener:
     """
     Listeners receive every message from the chat source and decide 
@@ -35,7 +37,7 @@ class Listener:
         if match = self.matcher(message):
             if self.regex:
                 self.robot.logger.debug("Message %s matched regex %s"
-                                        % (message, regex)
+                                        % (message, regex))
             self.callback(self.robot.Response(self.robot, message, match))
             return True
         slse:
@@ -57,4 +59,12 @@ class TextListener(Listener):
                   the callback.
         callback: A Function that is triggered if the incoming message metches.
         """
-        pass
+        self.robot      = robot
+        self.regex      = regex
+        self.callback   = callback
+        self.matcher    = matcher(self)
+
+        def matcher(message):
+            if isinstance(message, TextMessage):
+                return re.match(self.regex, message)
+

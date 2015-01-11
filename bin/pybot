@@ -3,7 +3,6 @@
 
 import os, sys
 import signal
-import logging
 import optparse
 import json
 
@@ -19,10 +18,16 @@ def main():
         help = 'The Adapter to use'
     )
 
+    def on_create(option, opt_strings, values, parser):
+        parser.values.create = True
+        parser.values.path = values
+
     parser.add_option(
         '-c', '--create',
-        action = 'store',
-        ## TODO: Set 'true' to create and default value
+        action = 'callback',
+        default = os.environ.get('HUBOT_PATH') or '.',
+        callback = on_create,
+        type = 'string',
         dest = 'path',
         help = 'Creaete a deployable hubot'
     )
@@ -53,9 +58,8 @@ def main():
 
     parser.add_option(
         '-r', '--require',
-        action = 'store',
-        default = os.environ.get('HUBOT_PATH') or '.',
-        dest = 'path',
+        action = 'append',
+        dest = 'scripts',
         help = 'Alternative scripts path'
     )
 
@@ -76,30 +80,33 @@ def main():
 
     (options, args) = parser.parse_args()
 
-    logging.basicConfig(level=logging.INFO)
+    #if sys.platform is not 'win32':
+    #    signal.signal(signal.SIGTERM, sys.exit())
 
-    if sys.platform is not 'win32':
-        signal.signal(signal.SIGTERM, sys.exit())
+    if options.alias == '':
+        options.alias = '/'
 
-    if options.create:
-        logging.error("'hubot --create' is deprecated. Use the yeoman generator instead:"
-        logging.error("    npm install -g yo generator-hubot"
-        logging.error("    mkdir -p " + options.path)
-        logging.error("    yo hubot")
-        logging.error("See https://github.com/github/hubot/blob/master/docs/README.md for more details on getting started.")
+    if hasattr(options, 'create') and options.create:
+        print >> sys.stderr, """'hubot --create' is deprecated. 
+                             Use the yeoman generator instead:"""
+        print >> sys.stderr, "    npm install -g yo generator-hubot"
+        print >> sys.stderr, "    mkdir -p %s" % options.path
+        print >> sys.stderr, "    yo hubot"
+        print >> sys.stderr, """See 
+            https://github.com/github/hubot/blob/master/docs/README.md
+            for more details on getting started."""
         sys.exit(1)
     else:
         dirname = os.path.dirname(os.path.abspath(sys.argv[0]))
         adapter_path = os.path.join(dirname, '..', 'src', 'adapters')
 
-        ## TODO: Fix writing 'load_bot'
-        robot = load_bot(adapter_path,
-                        options.adapter,
-                        options.enableHttpd,
-                        options.name)
+        robot = Hubot.load_bot(adapter_path,
+                                options.adapter,
+                                options.enableHttpd,
+                                options.name)
 
         if options.version:
-            logging.info robot.version
+            print robot.version
             sys.exit()
 
         robot.alias = options.alias
@@ -118,10 +125,13 @@ def main():
             if data.length > 0:
                 ## TODO: Checking to need a exception processing
                 scripts = json.load(data)
-                scripts_path = os.path.abspath(os.path.join('node_modules', 'hubot-scripts', 'src', 'scripts')
+                scripts_path = os.path.abspath(os.path.join('node_modules',
+                                                            'hubot-scripts',
+                                                            'src', 'scripts'))
                 robot.load_hubot_scripts(scripts_path, scripts)
 
-        external_scripts = os.path.abspath(os.path.join('.', 'external-scripts.json')
+        external_scripts = os.path.abspath(
+                            os.path.join('.','external-scripts.json'))
         if os.path.exists(external_scripts):
             fs = open(external_scripts, 'r')
             ## TODO: Fix to ansyncroniously reading above code
@@ -135,12 +145,12 @@ def main():
             if path[0] == '/':
                 scripts_path = path
             else:
-                scripts_path = os.path.abspath(os.path.join('.', path)
+                scripts_path = os.path.abspath(os.path.join('.', path))
             robot.load(scripts_path)
 
     if options.configCheck:
         load_scripts()
-        logging.info('OK')
+        print 'OK'
         sys.exit()
 
     robot.adapter.on('connected', load_scripts)
