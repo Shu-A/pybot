@@ -8,7 +8,7 @@ with open(path.join(here, 'DESCRIPTION.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name        = 'sample',
+    name        = 'pybot',
     version     = '0.1.0',
     description = 'Pybot project',
     long_description = long_description,
@@ -31,5 +31,9 @@ setup(
     ],
 
     install_requires = open('requirements.txt').read().splitlines(),
+
+    scripts = [
+        'bin/pybot',
+    ],
 
 )
