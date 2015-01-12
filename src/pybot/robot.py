@@ -7,6 +7,9 @@ import re
 
 from event_emitter import EventEmitter
 
+from pybot.brain import Brain
+from pybot.response import Response
+
 HUBOT_DEFAULT_ADAPTERS = [ 'campire', 'shell' ]
 
 HUBOT_DOCUMENTATION_SECTIONS = [
@@ -22,36 +25,50 @@ HUBOT_DOCUMENTATION_SECTIONS = [
     'urls'
 ]
 
+LOGGING_LEVEL = {
+    'critical'  : 50,
+    'error'     : 40,
+    'warning'   : 30,
+    'info'      : 20,
+    'debug'     : 10,
+    'notset'    : 0,
+}
 
-class robot(object):
+class Robot(object):
     """
     Robots recieve message from a chat source (Campfire, irc, etc), and
     dispatch them to matching listeners.
     """
 
-    def __init__(self, adapter_path, adapter, httd, name='Hubot'):
+    def __init__(self, adapter_namespace, adapter, httpd, name='Hubot'):
         """
         Constructor.
 
         Args:
-            adapter_path: A String of the path to local adapters.
-            adapter     : A String of the adapter name.
-            httpd       : A Boolean whether to enable the HTTP daemon.
-            name        : A String of the robot name, defaults to Hubot.
+            adapter_namespace   : A String of the path to local adapters.
+            adapter             : A String of the adapter name.
+            httpd               : A Boolean whether to enable the HTTP daemon.
+            name                : A String of the robot name, defaults to Hubot.
     
         Returns nothing.
         """
         self.name       = name
         self.events     = EventEmitter()
         self.brain      = Brain(self)
-        self.alias      = false
-        self.adapter    = null
+        self.alias      = False
+        self.adapter    = None
         self.response   = Response
         self.commands   = []
         self.listeners  = []
-        self.logger     = logger.getLogger()
-        self.logger(level=os.environ.get(HUBOT_LOG_LEVEL or 'info')
-        self.ping_interval_id = null
+        self.logger     = logging.getLogger()
+
+        loglevel = LOGGING_LEVEL['info']
+        env_loglevel = os.environ.get('HUBOT_LOG_LEVEL')
+        if env_loglevel and env_loglevel.lower() in LOGGING_LEVEL:
+            loglevel = env_loglevel.lower()
+        self.logger.setLevel(loglevel)
+
+        self.ping_interval_id = None
 
         self.parse_version()
         if httpd:
@@ -59,7 +76,7 @@ class robot(object):
         else:
             self.setup_null_router()
 
-        self.load_adapter(adapter_path, adapter)
+        self.load_adapter(adapter_namespace, adapter)
 
         self.adapter_name = adapter
         self.error_handlers = []
@@ -100,7 +117,8 @@ class robot(object):
         Returns nothing.
         """
         re = str(regex).split('/')
-        modifiers = re[1:-1]
+        re = re[1:]
+        modifiers = re.pop()
 
         ## TODO: Check "is this evaluation collect?"
         if re[0] and re[0][0] is '^':
@@ -113,11 +131,21 @@ class robot(object):
 
         if self.alias:
             alias = re.sub(r'[-[\]{}()*+?.,\\^$|#\s]', '\\$&', self.alias)
-            new_regex = 
+            pattern = (r'^\s*[@]?(?:%s[:,]?|%s[:,]?)\s*(?:%s)' 
+                % (alias, name, pattern))
         else:
-            new_regex = 
+            pattern = r'^\s*[@]?%s[:,]?\s*(?:%s)' % (name, pattern)
 
-        self.listeners.append(TextListener(self, new_regex, callback)
+        flags = 0
+        if 'i' in modifiers: flags += re.I
+        if 'm' in modifiers: flags += re.M
+
+        r = re.compile(pattern, flags)
+        if 'g' in modifiers:
+            new_regex = r.match
+        else:
+            new_regex = r.search
+        self.listeners.append(TextListener(self, new_regex, callback))
 
     def enter(self, callback):
         """
@@ -132,7 +160,7 @@ class robot(object):
         self.listeners.append(Listener(
             self,
             lambda(msg): isinstance(msg, EnterMessage),
-            callback)
+            callback))
 
     def leave(self, callback):
         """
@@ -162,7 +190,7 @@ class robot(object):
         self.listeners.append(Listener(
             self,
             lambda(msg): isinstance(msg, TopicMessage),
-            callback)
+            callback))
 
     def error(self, callback):
         """
@@ -220,8 +248,27 @@ class robot(object):
     def setup_null_router(self):
         pass
 
-    def load_adapter(self, path, adapter):
-        pass
+    def load_adapter(self, namespace, adapter):
+        """
+        Load the adapter Hubot is going to use.
+
+        Args:
+        path    : A String of the path to adapter if local
+        adapter : A String of the adapter name to use
+
+        Returns nothing.
+        """
+        self.logger.debug("Loading adapter %s" % adapter)
+
+        #if adapter in HUBOT_DEFAULT_ADAPTERS:
+        #    path += '/' + adapter
+        #else:
+        #    path = 'huobt-' + adapter
+        namespace += '.' + adapter
+
+        ## TODO: Write create and input new adapter instance of specific
+        #        class object. Maybe use __import__() ?
+        self.adaper = Adapter(self)
 
     def help_commands(self):
         pass
@@ -318,16 +365,16 @@ class robot(object):
         self.adapter.close()
         self.brain.close()
 
-    def perse_version(self):
+    def parse_version(self):
         """
-        ### Not implemented !!! ###
-
         Public:
         The version of Hubot from npm
 
         Returns a String of the version number.
         """
-        pass
+        ## TODO: Write Code insted of below tmporary one
+        self.version = '0.1.0'
+        return self.version
 
     def http(self, url, options):
         """

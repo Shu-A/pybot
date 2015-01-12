@@ -11,8 +11,8 @@ class Brain(EventEmitter):
     """
     def __init__(self, robot):
         self.data = {
-            users   : {}
-            _private: {}
+            'users'     : {},
+            '_private'  : {}
             }
 
         self.auto_save = True
@@ -137,8 +137,9 @@ class Brain(EventEmitter):
             user = User(id, options)
             self.data.users[id] = user
 
-        if options and options.room and
-            (not user.room or user room is not options.room)
+        if (options
+            and options.room
+            and (not user.room or user.room is not options.room)):
             user = User(id, options)
             self.data.users[id] = user
 
@@ -154,7 +155,7 @@ class Brain(EventEmitter):
         result = None
         lower_name = name.lower()
         for key in (self.data.users or {}):
-            user_name self.data.users[key]['name']
+            user_name = self.data.users[key]['name']
             if user_name and str(user_name).lower() is lower_name:
                 result = self.data.users[key]
 
@@ -172,8 +173,8 @@ class Brain(EventEmitter):
         lower_fuzzy_name = fuzzy_name.lower()
         users = []
         for key, user in (self.user or {}):
-            if user.name.lower().index(lower_fuzzy_name) == 0
-                and user.name.lower().count(lower_fuzzy_name):
+            if (user.name.lower().index(lower_fuzzy_name) == 0
+                and user.name.lower().count(lower_fuzzy_name)):
                     users.append(user)
 
         return users
