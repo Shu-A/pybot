@@ -268,6 +268,14 @@ class Robot(object):
 
         ## TODO: Write create and input new adapter instance of specific
         #        class object. Maybe use __import__() ?
+        target = namespace.split('.')
+        (package, module, cls_name) = (target[0],
+                                        namespace,
+                                        target[-1])
+        cls_name = cls_name[0].upper() + cls_name[1:]
+        print (package, module, cls_name)
+
+        Adapter = getattr(__import__(module, fromlist=[package]), cls_name)
         self.adaper = Adapter(self)
 
     def help_commands(self):
