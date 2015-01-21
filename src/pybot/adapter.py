@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-from event_emitter import Event_Emitter
+from event_emitter import EventEmitter
 
 class Adapter(EventEmitter):
     """
@@ -14,6 +14,7 @@ class Adapter(EventEmitter):
         Args:
         robot   : A Robot instance.
         """
+        super(Adapter, self).__init__()
         self.robot = robot
 
     def send(self, envelope, *strings):
@@ -41,7 +42,7 @@ class Adapter(EventEmitter):
 
         Returns nothing.
         """
-        self.send(envelope, strings)
+        self.send(envelope, *strings)
 
     def reply(self, envelope, *strings):
         """

@@ -266,17 +266,14 @@ class Robot(object):
         #    path = 'huobt-' + adapter
         namespace += '.' + adapter
 
-        ## TODO: Write create and input new adapter instance of specific
-        #        class object. Maybe use __import__() ?
         target = namespace.split('.')
         (package, module, cls_name) = (target[0],
                                         namespace,
                                         target[-1])
         cls_name = cls_name[0].upper() + cls_name[1:]
-        print (package, module, cls_name)
 
         Adapter = getattr(__import__(module, fromlist=[package]), cls_name)
-        self.adaper = Adapter(self)
+        self.adapter = Adapter(self)
 
     def help_commands(self):
         pass
@@ -295,7 +292,7 @@ class Robot(object):
 
         Returns nothing.
         """
-        self.adapter.send(user, strings)
+        self.adapter.send(user, *strings)
 
     def reply(self, user, *strings):
         """
@@ -309,7 +306,7 @@ class Robot(object):
 
         Returns nothing.
         """
-        self.adapter.reply(user, strings)
+        self.adapter.reply(user, *strings)
 
     def message_room(self, room, *strings):
         """
@@ -323,7 +320,7 @@ class Robot(object):
         Returns nothing.
         """
         user = {room: room }
-        self.adapter.send(user, strings)
+        self.adapter.send(user, *strings)
 
     def on(self, event, *args):
         ## TODO: Check is this args comment right?
@@ -338,7 +335,7 @@ class Robot(object):
 
         Returns nothing.
         """
-        self.events.on(event, args)
+        self.events.on(event, *args)
 
     def emit(self, event, *args):
         """
@@ -349,7 +346,7 @@ class Robot(object):
         event   : The event name.
         *args   : Arguments emitted by the event
         """
-        self.events.emit(event, agrs)
+        self.events.emit(event, *args)
 
     def run(self):
         """

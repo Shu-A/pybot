@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
+import time
+import threading
+
 from event_emitter import EventEmitter
 
 class Brain(EventEmitter):
@@ -10,12 +13,15 @@ class Brain(EventEmitter):
     Returns a new Brain with no external storage.
     """
     def __init__(self, robot):
+        super(Brain, self).__init__()
         self.data = {
             'users'     : {},
             '_private'  : {}
             }
 
         self.auto_save = True
+        self.save_interval = None
+        self.stop_event = threading.Event()
 
         robot.on("running", lambda: self.reset_save_interval(5))
 
@@ -72,7 +78,7 @@ class Brain(EventEmitter):
 
         Returns nothing.
         """
-        clear_interval(self.save_interval)
+        self.clear_interval()
         self.save()
         self.emit('close')
 
@@ -96,10 +102,25 @@ class Brain(EventEmitter):
 
         Returns nothing.
         """
-        ## TODO: Complete below code
         if self.save_interval:
-            clear_save_interval(self.save_interval)
-        self.save_interval = set_interval()
+            self.clear_interval()
+        if self.auto_save:
+            self.set_interval(self.save, seconds)
+
+    def set_interval(self, callback, delay):
+        def _target():
+            while not self.stop_event.is_set():
+                time.sleep(delay)
+                callback()
+
+        self.thread = threading.Thread(target=_target)
+        self.thread.start()
+        self.save_interval = True
+
+    def clear_interval(self):
+        self.stop_event.set()
+        self.thread.join()
+        self.save_interval = False
 
     def merge_data(self, data):
         """
@@ -132,14 +153,14 @@ class Brain(EventEmitter):
 
         Returns a User instance of the specified user.
         """
-        user = self.data.users(id)
+        user = self.data['users'][id]
         if not user:
             user = User(id, options)
-            self.data.users[id] = user
+            self.data['users'][id] = user
 
         if (options
-            and options.room
-            and (not user.room or user.room is not options.room)):
+            and options.has_key('room')
+            and (not user.room or user.room is not options.has_key['room'])):
             user = User(id, options)
             self.data.users[id] = user
 

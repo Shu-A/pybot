@@ -68,6 +68,7 @@ def main():
         '-r', '--require',
         action = 'append',
         dest = 'scripts',
+        default = os.environ.get('HUBOT_SCRIPTS') or [],
         help = 'Alternative scripts path'
     )
 
@@ -129,7 +130,7 @@ def main():
         robot.load(scripts_path)
 
         hubot_scripts = os.path.abspath(os.path.join('.', 'hubot-scripts.json'))
-        if os.path.exists(hubot_scrips):
+        if os.path.exists(hubot_scripts):
             fs = open(hubot_script, 'r')
             data = fs.read()
             if data.length > 0:

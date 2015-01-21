@@ -59,6 +59,7 @@ class TextListener(Listener):
                   the callback.
         callback: A Function that is triggered if the incoming message metches.
         """
+        super(TextListener, self).__init__()
         self.robot      = robot
         self.regex      = regex
         self.callback   = callback

@@ -32,7 +32,7 @@ class Response:
 
         Return nothing.
         """
-        self.robot.adapter.send(self.envelope, strings)
+        self.robot.adapter.send(self.envelope, *strings)
 
     def emote(self, *strings):
         """
@@ -45,7 +45,7 @@ class Response:
 
         Returns nothing.
         """
-        self.robot.adapter.emote(self.envelope, strings)
+        self.robot.adapter.emote(self.envelope, *strings)
 
     def reply(self, *strings):
         """
@@ -58,7 +58,7 @@ class Response:
 
         Returns nothing.
         """
-        self.robot.adapter.reply(self.envelope, strings)
+        self.robot.adapter.reply(self.envelope, *strings)
 
     def topic(self, *strings):
         """
@@ -71,7 +71,7 @@ class Response:
 
         Returns nothing.
         """
-        self.robot.adapter.topic(self.envelope, strings)
+        self.robot.adapter.topic(self.envelope, *strings)
 
     def play(self, *strings):
         """
@@ -84,7 +84,7 @@ class Response:
 
         Returns nothing.
         """
-        self.robot.adapter.play(self.envelope, strings)
+        self.robot.adapter.play(self.envelope, *strings)
 
     def locked(self, *strings):
         """
@@ -97,7 +97,7 @@ class Response:
         
         Returns nothing.
         """
-        self.robot.adapter.locked(self.envelope, strings)
+        self.robot.adapter.locked(self.envelope, *strings)
 
     def random(self, items):
         """
