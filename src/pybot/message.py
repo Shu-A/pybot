@@ -3,7 +3,7 @@
 
 import re
 
-class Massage:
+class Message(object):
     """
     Represents an imcoming from the chat.
     """

@@ -4,6 +4,7 @@
 import os, sys
 
 from pybot.adapter import Adapter
+from pybot.message import TextMessage
 
 if os.environ.get('HUBOT_SHELL_HISTSIZE'):
     history_size = int(os.environ.get('HUBOT_SHELL_HISTSIZE'))
@@ -49,7 +50,6 @@ class Shell(Adapter):
             if len(history_lines) >= history_size:
                 history_lines.pop(0)
             history_lines.append(line)
-            print history_lines
 
             if line == 'exit' or line == 'quit':
                 self.robot.shutdown()
@@ -62,7 +62,7 @@ class Shell(Adapter):
                 user_name = os.environ.get('HUBOT_SHELL_USER_NAME') or 'Shell'
                 options = { 'name': user_name, 'room': 'Shell' }
                 user = self.robot.brain.user_for_id(user_id, options)
-                sel.recieve = TextMessage(user, line, 'messageID')
+                self.recieve(TextMessage(user, line, 'messageId'))
 
         for line in history_lines:
             f.write(line + '\n')

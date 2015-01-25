@@ -6,6 +6,8 @@ import threading
 
 from event_emitter import EventEmitter
 
+from pybot.user import User
+
 class Brain(EventEmitter):
     """
     Represents somewhat persistent storage for the robot. Extend this.
@@ -153,16 +155,17 @@ class Brain(EventEmitter):
 
         Returns a User instance of the specified user.
         """
-        user = self.data['users'][id]
-        if not user:
+        try:
+            user = self.data['users'][id]
+        except KeyError:
             user = User(id, options)
             self.data['users'][id] = user
 
         if (options
             and options.has_key('room')
-            and (not user.room or user.room is not options.has_key['room'])):
+            and (not user.room or user.room is not options.has_key('room'))):
             user = User(id, options)
-            self.data.users[id] = user
+            self.data['users'][id] = user
 
         return user
 

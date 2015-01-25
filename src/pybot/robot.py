@@ -9,6 +9,7 @@ from event_emitter import EventEmitter
 
 from pybot.brain import Brain
 from pybot.response import Response
+from pybot.message import CatchAllMessage
 
 HUBOT_DEFAULT_ADAPTERS = [ 'campire', 'shell' ]
 
@@ -225,13 +226,38 @@ class Robot(object):
                                   (err, err.stack))
 
     def catch_all(self, callback):
-        pass
+        """
+        Public.
+        Adds a Listener that triggers when no other text matchers match.
+
+        Args:
+        callback    : A Function that is called with a Response object.
+
+        Return nothing.
+        """
+        self.listeners.append(Listener(self, 
+                                lambda msg: isinstance(msg, CatchAllMessage),
+                                callback_for_listener))
+
+        def callback_for_listener(msg):
+            msg.message = msg.message.message
+            callback(msg)
 
     def recieve(self, message):
-        pass
+        results = []
+        ## TODO: This need try, except processing ?
+        for listener in self.listeners:
+            results.append(listener.call(message))
+            if message.done:
+                break
+
+        if not isinstance(message, CatchAllMessage) and True not in results:
+            self.recieve(CatchAllMessage(message))
 
     def load_file(self, path, file):
-        pass
+        file_excluede_ext = os.path.splitext(file)[0]
+        full = os.path.join(path, file_exclude_ext)
+        test
 
     def load(self, path):
         pass
