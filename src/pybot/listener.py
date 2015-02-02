@@ -40,7 +40,7 @@ class Listener:
                                         % (message, regex))
             self.callback(self.robot.Response(self.robot, message, match))
             return True
-        slse:
+        else:
             return False
 
 

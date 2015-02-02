@@ -244,6 +244,16 @@ class Robot(object):
             callback(msg)
 
     def recieve(self, message):
+        """
+        Public.
+        Passes the given message to any interested Listeners.
+
+        Args:
+        message     : A Message instance. Listeners can flag this message as
+                      'done' to prevent futher execution.
+
+        Returns nothing.
+        """
         results = []
         ## TODO: This need try, except processing ?
         for listener in self.listeners:
@@ -255,15 +265,51 @@ class Robot(object):
             self.recieve(CatchAllMessage(message))
 
     def load_file(self, path, file):
+        """
+        Public.
+        Loads a file in path.
+
+        Args:
+        path    : A String path on the filesystem.
+        file    : A String filename in path on the filesystem.
+
+        Returns nothing.
+        """
         file_excluede_ext = os.path.splitext(file)[0]
         full = os.path.join(path, file_exclude_ext)
-        test
+        print 'xxx'
 
     def load(self, path):
-        pass
+        """
+        Public.
+        Loads every script in the given path.
+
+        Args:
+        path    : A String path on the filesystem.
+
+        Returns nothing.
+        """
+        self.logger.debug("Loading scripts from %s" % path)
+
+        if os.path.exists(path):
+            files = os.listdir(path)
+            for file in files:
+                self.load_file(path, file)
 
     def load_hubot_scripts(self, path, scripts):
-        pass
+        """
+        Public.
+        Load scripts specified in the `hubot-scripts.json` file.
+
+        Args:
+        path    : A String path to the hubot-scripts files.
+        scripts : An Array of scripts to load.
+
+        Returns nothing.
+        """
+        self.logger.debug("Loading hubot-scritps from %s" % path)
+        for script in scripts:
+            self.load_file(path, script)
 
     def load_external_scripts(self, packages):
         pass

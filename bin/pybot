@@ -136,9 +136,11 @@ def main():
             if data.length > 0:
                 ## TODO: Checking to need a exception processing
                 scripts = json.load(data)
-                scripts_path = os.path.abspath(os.path.join('node_modules',
-                                                            'hubot-scripts',
-                                                            'src', 'scripts'))
+                #scripts_path = os.path.abspath(os.path.join('node_modules',
+                #                                            'hubot-scripts',
+                #                                            'src', 'scripts'))
+                script_path = os.path.abspath(os.path.join('src',
+                                                           'pybot', 'scripts'))
                 robot.load_hubot_scripts(scripts_path, scripts)
 
         external_scripts = os.path.abspath(
