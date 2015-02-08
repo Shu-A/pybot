@@ -3,7 +3,9 @@
 
 import re
 
-class Listener:
+from pybot.message import TextMessage
+
+class Listener(object):
     """
     Listeners receive every message from the chat source and decide 
     if they wat to act no it.
@@ -34,7 +36,8 @@ class Listener:
 
         Returns a boolean of whether the matcher matched.
         """
-        if match = self.matcher(message):
+        match = self.matcher(message)
+        if match:
             if self.regex:
                 self.robot.logger.debug("Message %s matched regex %s"
                                         % (message, regex))
@@ -59,13 +62,14 @@ class TextListener(Listener):
                   the callback.
         callback: A Function that is triggered if the incoming message metches.
         """
-        super(TextListener, self).__init__()
-        self.robot      = robot
-        self.regex      = regex
-        self.callback   = callback
-        self.matcher    = matcher(self)
 
         def matcher(message):
             if isinstance(message, TextMessage):
                 return re.match(self.regex, message)
+
+        super(TextListener, self).__init__(robot, regex, callback)
+        self.robot      = robot
+        self.regex      = regex
+        self.callback   = callback
+        self.matcher    = matcher(self)
 

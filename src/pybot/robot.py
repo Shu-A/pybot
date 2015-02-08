@@ -1,15 +1,18 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-import os
+import os, sys
 import logging
 import re
+import glob
 
+from inspect import isfunction
 from event_emitter import EventEmitter
 
 from pybot.brain import Brain
 from pybot.response import Response
 from pybot.message import CatchAllMessage
+from pybot.listener import TextListener
 
 HUBOT_DEFAULT_ADAPTERS = [ 'campire', 'shell' ]
 
@@ -61,12 +64,13 @@ class Robot(object):
         self.response   = Response
         self.commands   = []
         self.listeners  = []
-        self.logger     = logging.getLogger()
 
         loglevel = LOGGING_LEVEL['info']
+        logging.basicConfig(level=loglevel)
+        self.logger     = logging.getLogger()
         env_loglevel = os.environ.get('HUBOT_LOG_LEVEL')
         if env_loglevel and env_loglevel.lower() in LOGGING_LEVEL:
-            loglevel = env_loglevel.lower()
+            loglevel = LOGGING_LEVEL[env_loglevel.lower()]
         self.logger.setLevel(loglevel)
 
         self.ping_interval_id = None
@@ -102,7 +106,7 @@ class Robot(object):
 
         Returns nothing.
         """
-        self.listeners.append(TextListener(self, regex, callback))
+        self.listeners.append(TextListener(self, regex.match, callback))
 
     def respond(self, regex, callback):
         """
@@ -264,7 +268,7 @@ class Robot(object):
         if not isinstance(message, CatchAllMessage) and True not in results:
             self.recieve(CatchAllMessage(message))
 
-    def load_file(self, path, file):
+    def load_file(self, path, namespace, file):
         """
         Public.
         Loads a file in path.
@@ -275,11 +279,25 @@ class Robot(object):
 
         Returns nothing.
         """
-        file_excluede_ext = os.path.splitext(file)[0]
-        full = os.path.join(path, file_exclude_ext)
-        print 'xxx'
+        script_name = os.path.splitext(file)[0]
 
-    def load(self, path):
+        try:
+            script = getattr(__import__(namespace + '.' + script_name,
+                                        fromlist=[namespace.split('.')]),
+                             'script')
+            if isfunction(script):
+                script(self)
+                #self._parse_help(os.path.join(path, file), script_name)
+            else:
+                self.logger.warn("Expected %s to assign a function, "
+                                 "but it's not defined in this script" %
+                                  namespace + '.' + script_name)
+                
+        except (AttributeError, NameError) as e:
+            print >> sys.stderr, 'Unable to load ' + file + ': ' + e.message
+            #sys.exit(1)
+
+    def load(self, path, namespace):
         """
         Public.
         Loads every script in the given path.
@@ -292,11 +310,14 @@ class Robot(object):
         self.logger.debug("Loading scripts from %s" % path)
 
         if os.path.exists(path):
+            #files = glob.glob(path + '/*.py')
             files = os.listdir(path)
-            for file in files:
-                self.load_file(path, file)
 
-    def load_hubot_scripts(self, path, scripts):
+            for file in files:
+                self.logger.debug("Found '%s' script file" % file)
+                self.load_file(path, namespace, file)
+
+    def load_hubot_scripts(self, path, namespace, scripts):
         """
         Public.
         Load scripts specified in the `hubot-scripts.json` file.
@@ -309,7 +330,7 @@ class Robot(object):
         """
         self.logger.debug("Loading hubot-scritps from %s" % path)
         for script in scripts:
-            self.load_file(path, script)
+            self.load_file(path, namespace, script)
 
     def load_external_scripts(self, packages):
         pass
@@ -350,8 +371,19 @@ class Robot(object):
     def help_commands(self):
         pass
 
-    def parse_help(self, path):
-        pass
+    def _parse_help(self, path, script_name):
+        """
+        Private:
+        load help info from a loaded script.
+
+        Args:
+        path    : A String path to the file on disk.
+
+        Returns nothing.
+        """
+        self.logger.debug("Parsing help for %s" % path)
+        script_document = {}
+        ## TODO: Complete code of this function
 
     def send(self, user, *strings):
         """

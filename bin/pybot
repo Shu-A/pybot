@@ -123,25 +123,20 @@ def main():
         robot.alias = options.alias
 
     def load_scripts():
-        scripts_path = os.path.abspath(os.path.join('.', 'scripts'))
-        robot.load(scripts_path)
-
-        scripts_path = os.path.abspath(os.path.join('.', 'src', 'scripts'))
-        robot.load(scripts_path)
+        scripts_path = os.path.abspath(os.path.join('.', 'src',
+                                                    'pybot', 'scripts'))
+        scripts_namespace = 'pybot.scripts'
+        robot.load(scripts_path, scripts_namespace)
 
         hubot_scripts = os.path.abspath(os.path.join('.', 'hubot-scripts.json'))
         if os.path.exists(hubot_scripts):
             fs = open(hubot_script, 'r')
             data = fs.read()
+            fs.close()
             if data.length > 0:
                 ## TODO: Checking to need a exception processing
                 scripts = json.load(data)
-                #scripts_path = os.path.abspath(os.path.join('node_modules',
-                #                                            'hubot-scripts',
-                #                                            'src', 'scripts'))
-                script_path = os.path.abspath(os.path.join('src',
-                                                           'pybot', 'scripts'))
-                robot.load_hubot_scripts(scripts_path, scripts)
+                robot.load_hubot_scripts(scripts_namespace, scripts)
 
         external_scripts = os.path.abspath(
                             os.path.join('.','external-scripts.json'))
@@ -149,6 +144,7 @@ def main():
             fs = open(external_scripts, 'r')
             ## TODO: Fix to ansyncroniously reading above code
             data = fs.read()
+            fs.close()
             if data.length > 0:
                 ## TODO: Checking to need a exception processing
                 scripts = json.load(data)
